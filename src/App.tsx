@@ -39,6 +39,9 @@ import { TonesAndEmotions } from "./components/TonesAndEmotions";
 import { BackgroundMusicRack } from "./components/BackgroundMusicRack";
 import { VinhetaTemplatesModal } from "./components/VinhetaTemplatesModal";
 import { VinhetaAiGeneratorModal } from "./components/VinhetaAiGeneratorModal";
+import { ApiKeyModal } from "./components/ApiKeyModal";
+import { getApiKey } from "./lib/gemini";
+import { Key } from "lucide-react";
 
 export default function App() {
   // Core Text & Voice States
@@ -81,6 +84,7 @@ export default function App() {
   // Modals
   const [isTemplatesOpen, setIsTemplatesOpen] = useState(false);
   const [isAiGeneratorOpen, setIsAiGeneratorOpen] = useState(false);
+  const [isApiKeyModalOpen, setIsApiKeyModalOpen] = useState(false);
 
   // Refs
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -176,7 +180,7 @@ export default function App() {
       }
     } catch (err: any) {
       console.error(err);
-      setError("Falha ao gerar locução. Verifique a conexão e tente novamente.");
+      setError(err.message || "Falha ao gerar locução. Verifique sua chave da API Gemini e tente novamente.");
       setIsConverting(false);
       setProgress(0);
       setIsPlaying(false);
@@ -392,6 +396,16 @@ export default function App() {
                 ))}
               </select>
             </div>
+
+            {/* API Key Config Button */}
+            <button
+              onClick={() => setIsApiKeyModalOpen(true)}
+              className="bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-300 hover:text-amber-400 font-semibold text-xs px-3 py-2 rounded-xl flex items-center gap-1.5 transition-all cursor-pointer shadow-sm"
+              title="Configurar Chave da API Gemini"
+            >
+              <Key className="w-3.5 h-3.5 text-amber-400" />
+              <span className="hidden md:inline">Chave Gemini</span>
+            </button>
 
             {/* Quick AI Button */}
             <button
@@ -683,6 +697,15 @@ export default function App() {
             />
           </div>
         </div>
+        {/* Api Key Modal */}
+        <ApiKeyModal
+          isOpen={isApiKeyModalOpen}
+          onClose={() => setIsApiKeyModalOpen(false)}
+          onSaved={() => {
+            showToast("Chave da API Gemini configurada com sucesso!");
+            setError(null);
+          }}
+        />
       </main>
 
       {/* Modals */}

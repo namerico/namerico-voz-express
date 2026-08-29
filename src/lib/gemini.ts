@@ -1,11 +1,23 @@
 import { GoogleGenAI, Modality } from "@google/genai";
 
-const apiKey = process.env.GEMINI_API_KEY;
-if (!apiKey) {
-  console.warn("GEMINI_API_KEY is missing. Check your environment configuration.");
+export function getApiKey(): string {
+  const localKey = typeof window !== "undefined" ? localStorage.getItem("GEMINI_API_KEY") : null;
+  return localKey || (process.env.GEMINI_API_KEY as string) || "";
 }
 
-const ai = new GoogleGenAI({ apiKey: apiKey || "" });
+export function setApiKey(key: string) {
+  if (typeof window !== "undefined") {
+    localStorage.setItem("GEMINI_API_KEY", key.trim());
+  }
+}
+
+function getAiClient(): GoogleGenAI {
+  const key = getApiKey();
+  if (!key) {
+    throw new Error("Chave da API Gemini não encontrada. Por favor, configure sua chave gratuita do Google AI Studio no botão 'Chave Gemini' no topo da página.");
+  }
+  return new GoogleGenAI({ apiKey: key });
+}
 
 export interface SpeechOptions {
   language: string;
@@ -22,8 +34,8 @@ export async function convertTextToSpeech(
   options: SpeechOptions
 ) {
   const { language, emotion, accent, voiceName = "Fenrir", voiceStyleModifier, intensity = "alta" } = options;
+  const ai = getAiClient();
   
-  // Custom prompt crafted specifically for Brazilian Carro de Som / Propaganda Volante / Commercial Announcers
   let directorInstructions = "Você é um locutor profissional brasileiro especializado em vinhetas de carro de som, propaganda volante de rua e rádio varejo.";
   
   if (voiceStyleModifier) {
@@ -35,7 +47,6 @@ export async function convertTextToSpeech(
   } else if (intensity === "alta") {
     directorInstructions += " Use impostação de voz firme, clara, vibrante, com cadência profissional de locutor comercial de varejo.";
   }
-
 
   const toneMap: Record<string, string> = {
     urgencia: "tom de extrema urgência, liquidação relâmpago, chamando a atenção imediata da freguesia e das donas de casa",
@@ -87,6 +98,7 @@ export async function convertTextToSpeech(
 }
 
 export async function generateVinhetaScript(theme: string, niche: string): Promise<string> {
+  const ai = getAiClient();
   try {
     const prompt = `Você é o melhor redator publicitário de vinhetas para carro de som, propaganda volante e rádio varejo do Brasil.
 Escreva um roteiro curto, impactante e direto (entre 2 a 4 frases) para ser lido por um locutor em um carro de som.
@@ -107,6 +119,7 @@ Retorne APENAS o texto puro pronto para a locução, sem explicações nem aspas
 }
 
 export async function transcribeAudio(audioBase64: string, mimeType: string = "audio/wav") {
+  const ai = getAiClient();
   try {
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
