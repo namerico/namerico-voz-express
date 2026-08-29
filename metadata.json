@@ -1,0 +1,6 @@
+{
+  "name": "VozExpress",
+  "description": "Estúdio de Vinhetas e Locução para Carro de Som, Propaganda Volante e Varejo com Vozes de Locutor e Efeitos de Áudio.",
+  "requestFramePermissions": ["microphone"],
+  "majorCapabilities": []
+}
